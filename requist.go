@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
-
 	// "fmt"
 	"io"
 	"log"
@@ -243,14 +241,14 @@ func (r *Requist) Request(successV, failureV interface{}) (*Requist, error) {
 			if successV != nil {
 				err = json.NewDecoder(response.Body).Decode(successV)
 				if err != nil {
-					fmt.Errorf("%v", err)
+					return r, err
 				}
 			}
 		} else {
 			if failureV != nil {
 				err = json.NewDecoder(response.Body).Decode(failureV)
 				if err != nil {
-					fmt.Errorf("%v", err)
+					return r, err
 				}
 			}
 		}
