@@ -399,7 +399,7 @@ func (r *Requist) GetBasicAuth() string {
 // Base sets base url to use for a client
 func (r *Requist) Base(base string) *Requist {
 
-	r.url = ParseBaseURL(base)
+	r.url = parseBaseURL(base)
 
 	return r
 }
@@ -407,7 +407,7 @@ func (r *Requist) Base(base string) *Requist {
 // Path sets request path to use in next request
 func (r *Requist) Path(path string) *Requist {
 
-	r.url = ParsePathURL(r.url, path)
+	r.url = parsePathURL(r.url, path)
 
 	return r
 }
