@@ -232,6 +232,7 @@ func (r *Requist) Request(successV, failureV interface{}) (*Requist, error) {
 	}
 	// Defer close response body
 	defer response.Body.Close()
+	defer r.CleanQueryParams()
 
 	r.statuscode = response.StatusCode
 
@@ -359,11 +360,18 @@ func (r *Requist) SetQueryParam(key, value string) *Requist {
 	return r
 }
 
-// Remove the key, value pair in QueryParams
+// Remove the key from QueryParams
 func (r *Requist) DelQueryParam(key, value string) *Requist {
 
 	r.querys.Del(key)
 
+	return r
+}
+
+// Remove the key from QueryParams
+func (r *Requist) CleanQueryParams() *Requist {
+
+	r.querys = &url.Values{}
 	return r
 }
 
