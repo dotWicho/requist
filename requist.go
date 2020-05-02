@@ -126,7 +126,7 @@ func (p textProvider) Body() (io.Reader, error) {
 type BodyResponse interface {
 	// Decode decodes the response into the value pointed to by v.
 	Accept() string
-	Decode(resp io.Reader, v interface{}) error
+	Decode(resp io.Reader, v interface{}) (err error)
 }
 
 // bodyResponse provides the wrapped to handle response body from requests.
@@ -140,13 +140,11 @@ func (r formResponse) Accept() string {
 	return formContentType
 }
 
-func (r formResponse) Decode(resp io.Reader, v interface{}) error {
+func (r formResponse) Decode(resp io.Reader, v interface{}) (err error) {
 
-	contents, err := ioutil.ReadAll(resp)
-	if err != nil {
+	if v, err = ioutil.ReadAll(resp); err != nil {
 		return err
 	}
-	v = string(contents)
 	return nil
 }
 
@@ -160,12 +158,11 @@ func (r jsonResponse) Accept() string {
 
 // Decode decodes the Response Body into the value pointed to by v.
 // Caller must provide a non-nil v and close the resp.Body.
-func (r jsonResponse) Decode(resp io.Reader, v interface{}) error {
+func (r jsonResponse) Decode(resp io.Reader, v interface{}) (err error) {
 
-	if err := json.NewDecoder(resp).Decode(v); err != nil {
+	if err = json.NewDecoder(resp).Decode(v); err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -179,13 +176,11 @@ func (r textResponse) Accept() string {
 
 // Decode decodes the Response Body into the value pointed to by v.
 // Caller must provide a non-nil v and close the resp.Body.
-func (r textResponse) Decode(resp io.Reader, v interface{}) error {
+func (r textResponse) Decode(resp io.Reader, v interface{}) (err error) {
 
-	contents, err := ioutil.ReadAll(resp)
-	if err != nil {
+	if v, err = ioutil.ReadAll(resp); err != nil {
 		return err
 	}
-	v = string(contents)
 	return nil
 }
 
