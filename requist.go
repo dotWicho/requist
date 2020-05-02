@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"io/ioutil"
 	// "fmt"
 	"io"
 	"log"
@@ -21,7 +22,9 @@ import (
 //#$$=== Useful constants
 
 const (
+	acceptHeader    string = "Accept"
 	contentType     string = "Content-Type"
+	textContentType string = "text/plain"
 	jsonContentType string = "application/json"
 	formContentType string = "application/x-www-form-urlencoded"
 )
@@ -53,6 +56,28 @@ func (p bodyProvider) Body() (io.Reader, error) {
 	return p.body, nil
 }
 
+//#$$=== FormProvider implementation of BodyProvider interface
+
+type formProvider struct {
+	payload interface{}
+}
+
+// formProvider ContentType just returns formContentType for validations
+func (p formProvider) ContentType() string {
+
+	return formContentType
+}
+
+// formProvider Body prepare our request body in Forms format
+func (p formProvider) Body() (io.Reader, error) {
+
+	values, err := query.Values(p.payload)
+	if err != nil {
+		return nil, err
+	}
+	return strings.NewReader(values.Encode()), nil
+}
+
 //#$$=== JsonProvider implementation of BodyProvider interface
 
 type jsonProvider struct {
@@ -79,24 +104,20 @@ func (p jsonProvider) Body() (io.Reader, error) {
 
 //#$$=== FormProvider implementation of BodyProvider interface
 
-type formProvider struct {
+type textProvider struct {
 	payload interface{}
 }
 
 // formProvider ContentType just returns formContentType for validations
-func (p formProvider) ContentType() string {
+func (p textProvider) ContentType() string {
 
-	return formContentType
+	return textContentType
 }
 
-// formProvider Body prepare our request body in Forms format
-func (p formProvider) Body() (io.Reader, error) {
+// textProvider Body prepare our request body in Forms format
+func (p textProvider) Body() (io.Reader, error) {
 
-	values, err := query.Values(p.payload)
-	if err != nil {
-		return nil, err
-	}
-	return strings.NewReader(values.Encode()), nil
+	return nil, nil
 }
 
 //#$$=== Response Body manipulators
@@ -104,21 +125,71 @@ func (p formProvider) Body() (io.Reader, error) {
 // BodyResponse decodes http responses into struct values.
 type BodyResponse interface {
 	// Decode decodes the response into the value pointed to by v.
+	Accept() string
 	Decode(resp io.Reader, v interface{}) error
 }
 
-// jsonDecoder decodes http response JSON into a JSON-tagged struct value.
+// bodyResponse provides the wrapped to handle response body from requests.
+type bodyResponse struct{}
+
+// formResponse decodes http response FORM into a map[string]string.
+type formResponse struct{}
+
+// Accept just return the Accept Type (application/x-www-form-urlencoded)
+func (r formResponse) Accept() string {
+	return formContentType
+}
+
+func (r formResponse) Decode(resp io.Reader, v interface{}) error {
+
+	contents, err := ioutil.ReadAll(resp)
+	if err != nil {
+		return err
+	}
+	v = string(contents)
+	return nil
+}
+
+// jsonResponse decodes http response JSON into a JSON-tagged struct value.
 type jsonResponse struct{}
+
+// Accept just return the Accept Type (application/json)
+func (r jsonResponse) Accept() string {
+	return jsonContentType
+}
 
 // Decode decodes the Response Body into the value pointed to by v.
 // Caller must provide a non-nil v and close the resp.Body.
 func (r jsonResponse) Decode(resp io.Reader, v interface{}) error {
 
-	err := json.NewDecoder(resp).Decode(v)
-	return err
+	if err := json.NewDecoder(resp).Decode(v); err != nil {
+		return err
+	}
+
+	return nil
 }
 
-//#$$=== dDefinitions: struct for Requests manipulations
+// textResponse decodes http response into a simple plain text.
+type textResponse struct{}
+
+// Accept just return the Accept Type (text/plain)
+func (r textResponse) Accept() string {
+	return textContentType
+}
+
+// Decode decodes the Response Body into the value pointed to by v.
+// Caller must provide a non-nil v and close the resp.Body.
+func (r textResponse) Decode(resp io.Reader, v interface{}) error {
+
+	contents, err := ioutil.ReadAll(resp)
+	if err != nil {
+		return err
+	}
+	v = string(contents)
+	return nil
+}
+
+//#$$=== Definitions: struct for Requests manipulations
 
 // Requist struct Encapsulate an HTTP(S) requests builder and sender
 type Requist struct {
@@ -176,6 +247,8 @@ func New(baseURL string) *Requist {
 	requist.querys = &url.Values{}
 	requist.client = &http.Client{}
 	requist.client.Timeout = 60 * time.Second
+	requist.provider = nil
+	requist.response = nil
 
 	return requist.Base(requist.url)
 }
@@ -236,20 +309,24 @@ func (r *Requist) Request(successV, failureV interface{}) (*Requist, error) {
 
 	r.statuscode = response.StatusCode
 
-	// Decode from json
+	// Decode from r.response Accept() type
 	if (successV != nil || failureV != nil) && r.statuscode != 204 {
 		if 200 <= r.statuscode && r.statuscode <= 299 {
 			if successV != nil {
-				err = json.NewDecoder(response.Body).Decode(successV)
-				if err != nil {
-					return r, err
+
+				if r.response != nil {
+					if err := r.response.Decode(response.Body, successV); err != nil {
+						return r, err
+					}
 				}
 			}
 		} else {
 			if failureV != nil {
-				err = json.NewDecoder(response.Body).Decode(failureV)
-				if err != nil {
-					return r, err
+
+				if r.response != nil {
+					if err := r.response.Decode(response.Body, failureV); err != nil {
+						return r, err
+					}
 				}
 			}
 		}
@@ -259,16 +336,6 @@ func (r *Requist) Request(successV, failureV interface{}) (*Requist, error) {
 
 //#$$=== Provider Body functions, used to set de content of payload to send on request
 
-// Body ... This func sets the body before make the efective Request.
-func (r *Requist) Body(body io.Reader) *Requist {
-
-	if body == nil {
-		return r
-	}
-
-	return r.BodyProvider(bodyProvider{body: body})
-}
-
 // BodyProvider sets the Requests's body provider from original BodyProvider interface{}.
 func (r *Requist) BodyProvider(body BodyProvider) *Requist {
 
@@ -277,21 +344,13 @@ func (r *Requist) BodyProvider(body BodyProvider) *Requist {
 	}
 
 	ct := body.ContentType()
-	if ct != "" /* && ! reflect.ValueOf(&body) */ {
+	if ct != "" {
 		r.provider = body
 		r.SetHeader(contentType, ct)
+		r.Accept(ct)
 	}
 
 	return r
-}
-
-// BodyAsJSON sets the Requests's body from a jsonProvider
-func (r *Requist) BodyAsJSON(body interface{}) *Requist {
-
-	if body == nil {
-		return r
-	}
-	return r.BodyProvider(jsonProvider{payload: body})
 }
 
 // BodyAsForm sets the Requests's body from a formProvider
@@ -302,6 +361,56 @@ func (r *Requist) BodyAsForm(body interface{}) *Requist {
 	}
 
 	return r.BodyProvider(formProvider{payload: body})
+}
+
+// BodyAsJSON sets the Requests's body from a jsonProvider
+func (r *Requist) BodyAsJSON(body interface{}) *Requist {
+
+	if body == nil {
+		return r
+	}
+
+	return r.BodyProvider(jsonProvider{payload: body})
+}
+
+// BodyAsForm sets the Requests's body from a formProvider
+func (r *Requist) BodyAsText(body interface{}) *Requist {
+
+	if body == nil {
+		return r
+	}
+
+	return r.BodyProvider(textProvider{payload: body})
+}
+
+//#$$===
+
+func (r *Requist) BodyResponse(body BodyResponse) *Requist {
+
+	if body == nil {
+		return r
+	}
+
+	ct := body.Accept()
+	if ct != "" {
+		r.response = body
+		r.SetHeader(acceptHeader, ct)
+	}
+
+	return r
+}
+
+func (r *Requist) Accept(accept string) {
+	switch accept {
+	case formContentType:
+		r.BodyResponse(formResponse{})
+	case jsonContentType:
+		r.BodyResponse(jsonResponse{})
+	case textContentType:
+		r.BodyResponse(textResponse{})
+	default:
+		r.response = nil
+	}
 }
 
 //#$$=== QueryParams manipulation functions
