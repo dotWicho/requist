@@ -5,6 +5,8 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"io/ioutil"
+	"time"
+
 	// "fmt"
 	"io"
 	"log"
@@ -13,8 +15,6 @@ import (
 
 	// "reflect"
 	"strings"
-	"time"
-
 	// Easy handle for QueryStrings
 	"github.com/google/go-querystring/query"
 )
@@ -27,6 +27,9 @@ const (
 	textContentType string = "text/plain"
 	jsonContentType string = "application/json"
 	formContentType string = "application/x-www-form-urlencoded"
+
+	// Timeout of http.Client default, 4 seconds
+	defaultTimeout = 4 * time.Second
 )
 
 //#$$=== Request Body manipulators
@@ -197,7 +200,7 @@ type Requist struct {
 
 	client   *http.Client
 	header   *http.Header
-	querys   *url.Values
+	queries  *url.Values
 	provider BodyProvider
 	response BodyResponse
 }
@@ -206,6 +209,7 @@ type Requist struct {
 
 // ParseBaseURL check if is valid the base string pased
 func parseBaseURL(base string) string {
+
 	url, err := url.Parse(base)
 	if err != nil {
 		log.Fatalln()
@@ -218,6 +222,7 @@ func parseBaseURL(base string) string {
 
 // ParsePathURL check relative path
 func parsePathURL(base string, path string) string {
+
 	url, err := url.Parse(base)
 	if err != nil {
 		log.Fatalln()
@@ -233,15 +238,16 @@ func parsePathURL(base string, path string) string {
 //  @return Requist class pointer
 //
 func New(baseURL string) *Requist {
+
 	requist := new(Requist)
 
 	if baseURL != "" {
 		requist.url = parseBaseURL(baseURL)
 	}
 	requist.header = &http.Header{}
-	requist.querys = &url.Values{}
+	requist.queries = &url.Values{}
 	requist.client = &http.Client{}
-	requist.client.Timeout = 60 * time.Second
+	requist.SetClientTimeout(defaultTimeout)
 	requist.provider = nil
 	requist.response = nil
 
@@ -259,11 +265,17 @@ func (r *Requist) New(baseURL string) *Requist {
 		requist.url = parseBaseURL(baseURL)
 	}
 	requist.header = r.header
-	requist.querys = r.querys
+	requist.queries = r.queries
 	requist.provider = r.provider
 	requist.response = r.response
 
 	return requist.Base(requist.url)
+}
+
+// SetClientTimeout take timeout param and set client Timeout seconds based
+func (r *Requist) SetClientTimeout(timeout time.Duration) {
+
+	r.client.Timeout = timeout * time.Second
 }
 
 //#$$=== Core function of Requist class
@@ -329,7 +341,7 @@ func (r *Requist) Request(successV, failureV interface{}) (*Requist, error) {
 	return r, err
 }
 
-//#$$=== Provider Body functions, used to set de content of payload to send on request
+//#$$=== Provider Body functions, used to set type of payload send on request
 
 // BodyProvider sets the Requests's body provider from original BodyProvider interface{}.
 func (r *Requist) BodyProvider(body BodyProvider) *Requist {
@@ -378,7 +390,7 @@ func (r *Requist) BodyAsText(body interface{}) *Requist {
 	return r.BodyProvider(textProvider{payload: body})
 }
 
-//#$$===
+//#$$=== Response Body functions, used to set type of response
 
 func (r *Requist) BodyResponse(body BodyResponse) *Requist {
 
@@ -412,9 +424,12 @@ func (r *Requist) Accept(accept string) {
 
 // addQueryParams ...
 func (r *Requist) addQueryParams(basePath string) (string, error) {
-	reqURL, err := url.Parse(parseBaseURL(r.url))
 
-	reqURL.RawQuery = r.querys.Encode()
+	reqURL, err := url.Parse(parseBaseURL(r.url))
+	if err != nil {
+		return "", err
+	}
+	reqURL.RawQuery = r.queries.Encode()
 
 	return reqURL.String(), err
 }
@@ -448,35 +463,33 @@ func (r *Requist) DelHeader(key, value string) *Requist {
 }
 
 // AddQueryParam adds the key, value tuples in QueryParams, appending values for existing keys
-func (r *Requist) AddQueryParam(key, value string) *Requist {
+func (r *Requist) AddQueryParam(key, value string) {
 
-	if r.querys != nil {
-		r.querys.Add(key, value)
+	if r.queries != nil {
+		r.queries.Add(key, value)
 	}
-	return r
 }
 
 // SetQueryParam set the key, value tuples in params to
-func (r *Requist) SetQueryParam(key, value string) *Requist {
+func (r *Requist) SetQueryParam(key, value string) {
 
-	r.querys.Set(key, value)
-
-	return r
+	if r.queries != nil {
+		r.queries.Set(key, value)
+	}
 }
 
 // Remove the key from QueryParams
-func (r *Requist) DelQueryParam(key, value string) *Requist {
+func (r *Requist) DelQueryParam(key, value string) {
 
-	r.querys.Del(key)
-
-	return r
+	if r.queries != nil {
+		r.queries.Del(key)
+	}
 }
 
 // Remove the key from QueryParams
-func (r *Requist) CleanQueryParams() *Requist {
+func (r *Requist) CleanQueryParams() {
 
-	r.querys = &url.Values{}
-	return r
+	r.queries = &url.Values{}
 }
 
 // SetBasicAuth sets the Authorization header to use HTTP Basic Authentication
