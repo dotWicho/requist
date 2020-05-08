@@ -4,19 +4,14 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
-	"io/ioutil"
-	"time"
-
-	// "fmt"
+	"github.com/google/go-querystring/query"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
-
-	// "reflect"
 	"strings"
-	// Easy handle for QueryStrings
-	"github.com/google/go-querystring/query"
+	"time"
 )
 
 //#$$=== Useful constants
@@ -42,25 +37,9 @@ type BodyProvider interface {
 	Body() (io.Reader, error)
 }
 
-// bodyProvider provides the wrapped body value as a Body for reqests.
-type bodyProvider struct {
-	body io.Reader
-}
-
-// bodyProvider ContentType() just return a empty Content-Type
-func (p bodyProvider) ContentType() string {
-
-	return ""
-}
-
-// bodyProvider Body() returns the body request
-func (p bodyProvider) Body() (io.Reader, error) {
-
-	return p.body, nil
-}
-
 //#$$=== FormProvider implementation of BodyProvider interface
 
+// formProvider implementation of BodyProvider interface
 type formProvider struct {
 	payload interface{}
 }
@@ -83,6 +62,7 @@ func (p formProvider) Body() (io.Reader, error) {
 
 //#$$=== JsonProvider implementation of BodyProvider interface
 
+// jsonProvider implementation of BodyProvider interface
 type jsonProvider struct {
 	payload interface{}
 }
@@ -105,8 +85,9 @@ func (p jsonProvider) Body() (io.Reader, error) {
 	return buffer, nil
 }
 
-//#$$=== FormProvider implementation of BodyProvider interface
+//#$$=== Plain Text Provider implementation of BodyProvider interface
 
+// textProvider implementation of BodyProvider interface
 type textProvider struct {
 	payload interface{}
 }
@@ -131,9 +112,6 @@ type BodyResponse interface {
 	Accept() string
 	Decode(resp io.Reader, v interface{}) (err error)
 }
-
-// bodyResponse provides the wrapped to handle response body from requests.
-type bodyResponse struct{}
 
 // formResponse decodes http response FORM into a map[string]string.
 type formResponse struct{}
@@ -210,25 +188,25 @@ type Requist struct {
 // ParseBaseURL check if is valid the base string pased
 func parseBaseURL(base string) string {
 
-	url, err := url.Parse(base)
+	urlParsed, err := url.Parse(base)
 	if err != nil {
 		log.Fatalln()
 	}
-	url.RawQuery = ""
-	url.Fragment = ""
+	urlParsed.RawQuery = ""
+	urlParsed.Fragment = ""
 
-	return url.String()
+	return urlParsed.String()
 }
 
 // ParsePathURL check relative path
 func parsePathURL(base string, path string) string {
 
-	url, err := url.Parse(base)
+	urlParsed, err := url.Parse(base)
 	if err != nil {
 		log.Fatalln()
 	}
-	url.Path = path
-	return url.String()
+	urlParsed.Path = path
+	return urlParsed.String()
 }
 
 //#$$=== Functions to create a Requist instance
@@ -283,7 +261,7 @@ func (r *Requist) SetClientTimeout(timeout time.Duration) {
 // Request ... Here it's where the magic show up
 func (r *Requist) Request(successV, failureV interface{}) (*Requist, error) {
 
-	requestPath, err := r.addQueryParams(r.url)
+	requestPath, err := r.addQueryParams()
 	if err != nil {
 		return r, err
 	}
@@ -423,7 +401,7 @@ func (r *Requist) Accept(accept string) {
 //#$$=== QueryParams manipulation functions
 
 // addQueryParams ...
-func (r *Requist) addQueryParams(basePath string) (string, error) {
+func (r *Requist) addQueryParams() (string, error) {
 
 	reqURL, err := url.Parse(parseBaseURL(r.url))
 	if err != nil {
@@ -438,28 +416,22 @@ func (r *Requist) addQueryParams(basePath string) (string, error) {
 
 // Add adds the key, value pair in Headers, appending values for existing keys
 // to the key's values. Header keys are canonicalized.
-func (r *Requist) AddHeader(key, value string) *Requist {
+func (r *Requist) AddHeader(key, value string) {
 
 	r.header.Add(key, value)
-
-	return r
 }
 
 // Set sets the key, value pair in Headers, replacing existing values
 // associated with key. Header keys are canonicalized.
-func (r *Requist) SetHeader(key, value string) *Requist {
+func (r *Requist) SetHeader(key, value string) {
 
 	r.header.Set(key, value)
-
-	return r
 }
 
 // Remove the key, value pair in Headers
-func (r *Requist) DelHeader(key, value string) *Requist {
+func (r *Requist) DelHeader(key string) {
 
 	r.header.Del(key)
-
-	return r
 }
 
 // AddQueryParam adds the key, value tuples in QueryParams, appending values for existing keys
@@ -479,7 +451,7 @@ func (r *Requist) SetQueryParam(key, value string) {
 }
 
 // Remove the key from QueryParams
-func (r *Requist) DelQueryParam(key, value string) {
+func (r *Requist) DelQueryParam(key string) {
 
 	if r.queries != nil {
 		r.queries.Del(key)
