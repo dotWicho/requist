@@ -1,172 +1,15 @@
 package requist
 
 import (
-	"bytes"
 	"encoding/base64"
-	"encoding/json"
-	"github.com/google/go-querystring/query"
 	"github.com/hashicorp/go-cleanhttp"
 	"io"
-	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
-	"strings"
 	"time"
 )
 
-//#$$=== Useful constants
-
-const (
-	acceptHeader    string = "Accept"
-	contentType     string = "Content-Type"
-	textContentType string = "text/plain"
-	jsonContentType string = "application/json"
-	formContentType string = "application/x-www-form-urlencoded"
-
-	// Timeout of http.Client default, 4 seconds
-	defaultTimeout = 4 * time.Second
-)
-
-//#$$=== Request Body manipulators
-
-// BodyProvider provides Body content for http.Request attachment.
-type BodyProvider interface {
-	// ContentType returns the Content-Type of the body.
-	ContentType() string
-	// Body returns the io.Reader body.
-	Body() (io.Reader, error)
-}
-
-//#$$=== FormProvider implementation of BodyProvider interface
-
-// formProvider implementation of BodyProvider interface
-type formProvider struct {
-	payload interface{}
-}
-
-// formProvider ContentType just returns formContentType for validations
-func (p formProvider) ContentType() string {
-
-	return formContentType
-}
-
-// formProvider Body prepare our request body in Forms format
-func (p formProvider) Body() (io.Reader, error) {
-
-	values, err := query.Values(p.payload)
-	if err != nil {
-		return nil, err
-	}
-	return strings.NewReader(values.Encode()), nil
-}
-
-//#$$=== JsonProvider implementation of BodyProvider interface
-
-// jsonProvider implementation of BodyProvider interface
-type jsonProvider struct {
-	payload interface{}
-}
-
-// jsonProvider ContentType just returns jsonContentType for validations
-func (p jsonProvider) ContentType() string {
-
-	return jsonContentType
-}
-
-// jsonProvider Body prepare our request body in JSON format
-func (p jsonProvider) Body() (io.Reader, error) {
-
-	buffer := new(bytes.Buffer)
-	err := json.NewEncoder(buffer).Encode(p.payload)
-
-	if err != nil {
-		return nil, err
-	}
-	return buffer, nil
-}
-
-//#$$=== Plain Text Provider implementation of BodyProvider interface
-
-// textProvider implementation of BodyProvider interface
-type textProvider struct {
-	payload interface{}
-}
-
-// formProvider ContentType just returns formContentType for validations
-func (p textProvider) ContentType() string {
-
-	return textContentType
-}
-
-// textProvider Body prepare our request body in Forms format
-func (p textProvider) Body() (io.Reader, error) {
-
-	return nil, nil
-}
-
-//#$$=== Response Body manipulators
-
-// BodyResponse decodes http responses into struct values.
-type BodyResponse interface {
-	// Decode decodes the response into the value pointed to by v.
-	Accept() string
-	Decode(resp io.Reader, v interface{}) (err error)
-}
-
-// formResponse decodes http response FORM into a map[string]string.
-type formResponse struct{}
-
-// Accept just return the Accept Type (application/x-www-form-urlencoded)
-func (r formResponse) Accept() string {
-	return formContentType
-}
-
-func (r formResponse) Decode(resp io.Reader, v interface{}) (err error) {
-
-	if v, err = ioutil.ReadAll(resp); err != nil {
-		return err
-	}
-	return nil
-}
-
-// jsonResponse decodes http response JSON into a JSON-tagged struct value.
-type jsonResponse struct{}
-
-// Accept just return the Accept Type (application/json)
-func (r jsonResponse) Accept() string {
-	return jsonContentType
-}
-
-// Decode decodes the Response Body into the value pointed to by v.
-// Caller must provide a non-nil v and close the resp.Body.
-func (r jsonResponse) Decode(resp io.Reader, v interface{}) (err error) {
-
-	if err = json.NewDecoder(resp).Decode(v); err != nil {
-		return err
-	}
-	return nil
-}
-
-// textResponse decodes http response into a simple plain text.
-type textResponse struct{}
-
-// Accept just return the Accept Type (text/plain)
-func (r textResponse) Accept() string {
-	return textContentType
-}
-
-// Decode decodes the Response Body into the value pointed to by v.
-// Caller must provide a non-nil v and close the resp.Body.
-func (r textResponse) Decode(resp io.Reader, v interface{}) (err error) {
-
-	if v, err = ioutil.ReadAll(resp); err != nil {
-		return err
-	}
-	return nil
-}
-
-//#$$=== Definitions: struct for Requests manipulations
+//=== Requests manipulations interface
 
 type requist interface {
 	New(baseURL string) *Requist
@@ -208,47 +51,27 @@ type requist interface {
 
 // Requist struct Encapsulate an HTTP(S) requests builder and sender
 type Requist struct {
+
+	// Basics
 	auth   string
 	method string
 	url    string
 	path   string
 
+	// Holds last HTTP Response Code
 	statuscode int
 
-	client   *http.Client
-	header   *http.Header
-	queries  *url.Values
+	// Handle HTTP(S) primitives
+	client  *http.Client
+	header  *http.Header
+	queries *url.Values
+
+	// Bodies, Request and Response
 	provider BodyProvider
 	response BodyResponse
 }
 
-//#$$=== Supplemental functions to manipulate path
-
-// ParseBaseURL check if is valid the base string pased
-func parseBaseURL(base string) string {
-
-	urlParsed, err := url.Parse(base)
-	if err != nil {
-		log.Fatalln()
-	}
-	urlParsed.RawQuery = ""
-	urlParsed.Fragment = ""
-
-	return urlParsed.String()
-}
-
-// ParsePathURL check relative path
-func parsePathURL(base string, path string) string {
-
-	urlParsed, err := url.Parse(base)
-	if err != nil {
-		log.Fatalln()
-	}
-	urlParsed.Path = path
-	return urlParsed.String()
-}
-
-//#$$=== Functions to create a Requist instance
+//=== Functions to create a Requist instance
 
 // New function
 //  @param baseURL
