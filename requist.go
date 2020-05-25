@@ -11,6 +11,7 @@ import (
 
 //=== Requests manipulations interface
 
+// Requist interface Define all Methods
 type requist interface {
 	New(baseURL string) *Requist
 
@@ -38,15 +39,15 @@ type requist interface {
 	Base(base string) *Requist
 	Path(path string) *Requist
 	Method(method string) *Requist
-	Head(path string, successV, failureV interface{}) (*Requist, error)
-	Get(path string, successV, failureV interface{}) (*Requist, error)
-	Put(path string, successV, failureV interface{}) (*Requist, error)
-	Post(path string, successV, failureV interface{}) (*Requist, error)
-	Patch(path string, successV, failureV interface{}) (*Requist, error)
-	Delete(path string, successV, failureV interface{}) (*Requist, error)
-	Options(path string, successV, failureV interface{}) (*Requist, error)
-	Trace(path string, successV, failureV interface{}) (*Requist, error)
-	Connect(path string, successV, failureV interface{}) (*Requist, error)
+	Head(path string, success, failure interface{}) (*Requist, error)
+	Get(path string, success, failure interface{}) (*Requist, error)
+	Put(path string, success, failure interface{}) (*Requist, error)
+	Post(path string, success, failure interface{}) (*Requist, error)
+	Patch(path string, success, failure interface{}) (*Requist, error)
+	Delete(path string, success, failure interface{}) (*Requist, error)
+	Options(path string, success, failure interface{}) (*Requist, error)
+	Trace(path string, success, failure interface{}) (*Requist, error)
+	Connect(path string, success, failure interface{}) (*Requist, error)
 }
 
 // Requist struct Encapsulate an HTTP(S) requests builder and sender
@@ -128,7 +129,7 @@ func (r *Requist) SetClientTimeout(timeout time.Duration) {
 //#$$=== Core function of Requist class
 
 // Request ... Here it's where the magic show up
-func (r *Requist) Request(successV, failureV interface{}) (*Requist, error) {
+func (r *Requist) Request(success, failure interface{}) (*Requist, error) {
 
 	requestPath, err := r.addQueryParams()
 	if err != nil {
@@ -164,21 +165,21 @@ func (r *Requist) Request(successV, failureV interface{}) (*Requist, error) {
 	r.statuscode = response.StatusCode
 
 	// Decode from r.response Accept() type
-	if (successV != nil || failureV != nil) && r.statuscode != 204 {
+	if (success != nil || failure != nil) && r.statuscode != 204 {
 		if 200 <= r.statuscode && r.statuscode <= 299 {
-			if successV != nil {
+			if success != nil {
 
 				if r.response != nil {
-					if err := r.response.Decode(response.Body, successV); err != nil {
+					if err := r.response.Decode(response.Body, success); err != nil {
 						return r, err
 					}
 				}
 			}
 		} else {
-			if failureV != nil {
+			if failure != nil {
 
 				if r.response != nil {
-					if err := r.response.Decode(response.Body, failureV); err != nil {
+					if err := r.response.Decode(response.Body, failure); err != nil {
 						return r, err
 					}
 				}
@@ -386,55 +387,55 @@ func (r *Requist) Method(method string) *Requist {
 //#$$=== Requist functions executers, Correspond to HTTP Methods
 
 // Head implement HEAD HTTP Method
-func (r *Requist) Head(path string, successV, failureV interface{}) (*Requist, error) {
+func (r *Requist) Head(path string, success, failure interface{}) (*Requist, error) {
 
-	return r.Method(http.MethodHead).Path(path).Request(successV, failureV)
+	return r.Method(http.MethodHead).Path(path).Request(success, failure)
 }
 
 // Get implement GET HTTP Method
-func (r *Requist) Get(path string, successV, failureV interface{}) (*Requist, error) {
+func (r *Requist) Get(path string, success, failure interface{}) (*Requist, error) {
 
-	return r.Method(http.MethodGet).Path(path).Request(successV, failureV)
+	return r.Method(http.MethodGet).Path(path).Request(success, failure)
 }
 
 // Put implement PUT HTTP Method
-func (r *Requist) Put(path string, successV, failureV interface{}) (*Requist, error) {
+func (r *Requist) Put(path string, success, failure interface{}) (*Requist, error) {
 
-	return r.Method(http.MethodPut).Path(path).Request(successV, failureV)
+	return r.Method(http.MethodPut).Path(path).Request(success, failure)
 }
 
 // Post implement POST HTTP Method
-func (r *Requist) Post(path string, successV, failureV interface{}) (*Requist, error) {
+func (r *Requist) Post(path string, success, failure interface{}) (*Requist, error) {
 
-	return r.Method(http.MethodPost).Path(path).Request(successV, failureV)
+	return r.Method(http.MethodPost).Path(path).Request(success, failure)
 }
 
 // Patch implement PATCH HTTP Method
-func (r *Requist) Patch(path string, successV, failureV interface{}) (*Requist, error) {
+func (r *Requist) Patch(path string, success, failure interface{}) (*Requist, error) {
 
-	return r.Method(http.MethodPatch).Path(path).Request(successV, failureV)
+	return r.Method(http.MethodPatch).Path(path).Request(success, failure)
 }
 
 // Delete implement DELETE HTTP Method
-func (r *Requist) Delete(path string, successV, failureV interface{}) (*Requist, error) {
+func (r *Requist) Delete(path string, success, failure interface{}) (*Requist, error) {
 
-	return r.Method(http.MethodDelete).Path(path).Request(successV, failureV)
+	return r.Method(http.MethodDelete).Path(path).Request(success, failure)
 }
 
 // Options implement OPTIONS HTTP Method
-func (r *Requist) Options(path string, successV, failureV interface{}) (*Requist, error) {
+func (r *Requist) Options(path string, success, failure interface{}) (*Requist, error) {
 
-	return r.Method(http.MethodOptions).Path(path).Request(successV, failureV)
+	return r.Method(http.MethodOptions).Path(path).Request(success, failure)
 }
 
 // Trace implement TRACE HTTP Method
-func (r *Requist) Trace(path string, successV, failureV interface{}) (*Requist, error) {
+func (r *Requist) Trace(path string, success, failure interface{}) (*Requist, error) {
 
-	return r.Method(http.MethodTrace).Path(path).Request(successV, failureV)
+	return r.Method(http.MethodTrace).Path(path).Request(success, failure)
 }
 
 // Connect implement CONNECT HTTP Method
-func (r *Requist) Connect(path string, successV, failureV interface{}) (*Requist, error) {
+func (r *Requist) Connect(path string, success, failure interface{}) (*Requist, error) {
 
-	return r.Method(http.MethodConnect).Path(path).Request(successV, failureV)
+	return r.Method(http.MethodConnect).Path(path).Request(success, failure)
 }
