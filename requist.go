@@ -2,6 +2,8 @@ package requist
 
 import (
 	"encoding/base64"
+	// We use go-cleanhttp because it contains a better implementation of http.Transport
+	// and allows us to abstract from these changes
 	"github.com/hashicorp/go-cleanhttp"
 	"io"
 	"net/http"
@@ -191,7 +193,7 @@ func (r *Requist) Request(success, failure interface{}) (*Requist, error) {
 
 //#$$=== Provider Body functions, used to set type of payload send on request
 
-// BodyProvider sets the Requests's body provider from original BodyProvider interface{}.
+// BodyProvider sets the Requests's body provider from original BodyProvider interface{}
 func (r *Requist) BodyProvider(body BodyProvider) *Requist {
 
 	if body == nil {
@@ -228,7 +230,7 @@ func (r *Requist) BodyAsJSON(body interface{}) *Requist {
 	return r.BodyProvider(jsonProvider{payload: body})
 }
 
-// BodyAsForm sets the Requests's body from a formProvider
+// BodyAsText sets the Requests's body from a textProvider
 func (r *Requist) BodyAsText(body interface{}) *Requist {
 
 	if body == nil {
@@ -240,6 +242,7 @@ func (r *Requist) BodyAsText(body interface{}) *Requist {
 
 //#$$=== Response Body functions, used to set type of response
 
+// BodyResponse sets the response's body
 func (r *Requist) BodyResponse(body BodyResponse) *Requist {
 
 	if body == nil {
@@ -255,13 +258,14 @@ func (r *Requist) BodyResponse(body BodyResponse) *Requist {
 	return r
 }
 
+// Accept sets the response's body mimeType
 func (r *Requist) Accept(accept string) {
 	switch accept {
-	case formContentType:
+	case FormContentType:
 		r.BodyResponse(formResponse{})
-	case jsonContentType:
+	case JsonContentType:
 		r.BodyResponse(jsonResponse{})
-	case textContentType:
+	case TextContentType:
 		r.BodyResponse(textResponse{})
 	default:
 		r.response = nil
@@ -284,21 +288,21 @@ func (r *Requist) addQueryParams() (string, error) {
 
 //#$$=== Header manipulation functions
 
-// Add adds the key, value pair in Headers, appending values for existing keys
+// AddHeader adds the key, value pair in Headers, appending values for existing keys
 // to the key's values. Header keys are canonicalized.
 func (r *Requist) AddHeader(key, value string) {
 
 	r.header.Add(key, value)
 }
 
-// Set sets the key, value pair in Headers, replacing existing values
+// SetHeader sets the key, value pair in Headers, replacing existing values
 // associated with key. Header keys are canonicalized.
 func (r *Requist) SetHeader(key, value string) {
 
 	r.header.Set(key, value)
 }
 
-// Remove the key, value pair in Headers
+// DelHeader remove the key, value pair in Headers
 func (r *Requist) DelHeader(key string) {
 
 	r.header.Del(key)
@@ -320,7 +324,7 @@ func (r *Requist) SetQueryParam(key, value string) {
 	}
 }
 
-// Remove the key from QueryParams
+// DelQueryParam remove the key from QueryParams
 func (r *Requist) DelQueryParam(key string) {
 
 	if r.queries != nil {
@@ -328,7 +332,7 @@ func (r *Requist) DelQueryParam(key string) {
 	}
 }
 
-// Remove the key from QueryParams
+// CleanQueryParams remove all keys from QueryParams
 func (r *Requist) CleanQueryParams() {
 
 	r.queries = &url.Values{}
