@@ -25,10 +25,10 @@ type formProvider struct {
 	payload interface{}
 }
 
-// formProvider ContentType just returns formContentType for validations
+// formProvider ContentType just returns FormContentType for validations
 func (p formProvider) ContentType() string {
 
-	return formContentType
+	return FormContentType
 }
 
 // formProvider Body prepare our request body in Forms format
@@ -48,10 +48,10 @@ type jsonProvider struct {
 	payload interface{}
 }
 
-// jsonProvider ContentType just returns jsonContentType for validations
+// jsonProvider ContentType just returns JsonContentType for validations
 func (p jsonProvider) ContentType() string {
 
-	return jsonContentType
+	return JsonContentType
 }
 
 // jsonProvider Body prepare our request body in JSON format
@@ -73,10 +73,10 @@ type textProvider struct {
 	payload interface{}
 }
 
-// formProvider ContentType just returns formContentType for validations
+// formProvider ContentType just returns FormContentType for validations
 func (p textProvider) ContentType() string {
 
-	return textContentType
+	return TextContentType
 }
 
 // textProvider Body prepare our request body in Forms format

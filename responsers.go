@@ -20,7 +20,7 @@ type formResponse struct{}
 
 // Accept just return the Accept Type (application/x-www-form-urlencoded)
 func (r formResponse) Accept() string {
-	return formContentType
+	return FormContentType
 }
 
 // Decode decodes the Response Body into the value pointed to by v
@@ -38,7 +38,7 @@ type jsonResponse struct{}
 
 // Accept just return the Accept Type (application/json)
 func (r jsonResponse) Accept() string {
-	return jsonContentType
+	return JsonContentType
 }
 
 // Decode decodes the Response Body into the value pointed to by v
@@ -56,7 +56,7 @@ type textResponse struct{}
 
 // Accept just return the Accept Type (text/plain)
 func (r textResponse) Accept() string {
-	return textContentType
+	return TextContentType
 }
 
 // Decode decodes the Response Body into the value pointed to by v.
