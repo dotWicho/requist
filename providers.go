@@ -48,10 +48,10 @@ type jsonProvider struct {
 	payload interface{}
 }
 
-// jsonProvider ContentType just returns JsonContentType for validations
+// jsonProvider ContentType just returns JSONContentType for validations
 func (p jsonProvider) ContentType() string {
 
-	return JsonContentType
+	return JSONContentType
 }
 
 // jsonProvider Body prepare our request body in JSON format

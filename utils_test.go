@@ -60,11 +60,11 @@ func TestIsValidBase(t *testing.T) {
 
 	t.Run("return false if an empty baseURL", func(t *testing.T) {
 		// Define some vars
-		var baseUrl = ""
+		var baseURL = ""
 
 		// fire up
 		// We create our requist Client
-		result := IsValidBase(baseUrl)
+		result := IsValidBase(baseURL)
 		// if result equals to expected?
 		// we don't have a new Client?
 		assert.Equal(t, false, result)
@@ -72,11 +72,11 @@ func TestIsValidBase(t *testing.T) {
 
 	t.Run("return false if an invalid baseURL", func(t *testing.T) {
 		// Define some vars
-		var baseUrl = "https://?bar&?foo"
+		var baseURL = "https://?bar&?foo"
 
 		// fire up
 		// We create our requist Client
-		result := IsValidBase(baseUrl)
+		result := IsValidBase(baseURL)
 		// if result equals to expected?
 		// we don't have a new Client?
 		assert.Equal(t, false, result)
@@ -84,11 +84,11 @@ func TestIsValidBase(t *testing.T) {
 
 	t.Run("return false if an invalid scheme in baseURL", func(t *testing.T) {
 		// Define some vars
-		var baseUrl = "file:///home/user/config.txt"
+		var baseURL = "file:///home/user/config.txt"
 
 		// fire up
 		// We create our requist Client
-		result := IsValidBase(baseUrl)
+		result := IsValidBase(baseURL)
 		// if result equals to expected?
 		// we don't have a new Client?
 		assert.Equal(t, false, result)
@@ -96,11 +96,11 @@ func TestIsValidBase(t *testing.T) {
 
 	t.Run("return false if an invalid host in baseURL", func(t *testing.T) {
 		// Define some vars
-		var baseUrl = "https://.ourhost/api/resource"
+		var baseURL = "https://.ourhost/api/resource"
 
 		// fire up
 		// We create our requist Client
-		result := IsValidBase(baseUrl)
+		result := IsValidBase(baseURL)
 		// if result equals to expected?
 		// we don't have a new Client?
 		assert.Equal(t, false, result)
@@ -108,11 +108,11 @@ func TestIsValidBase(t *testing.T) {
 
 	t.Run("return false if an invalid host in baseURL", func(t *testing.T) {
 		// Define some vars
-		var baseUrl = "https://ourhost:/api/resource"
+		var baseURL = "https://ourhost:/api/resource"
 
 		// fire up
 		// We create our requist Client
-		result := IsValidBase(baseUrl)
+		result := IsValidBase(baseURL)
 		// if result equals to expected?
 		// we don't have a new Client?
 		assert.Equal(t, false, result)
@@ -120,11 +120,11 @@ func TestIsValidBase(t *testing.T) {
 
 	t.Run("return true if a valid baseURL", func(t *testing.T) {
 		// Define some vars
-		var baseUrl = "https://live.apitest.org"
+		var baseURL = "https://live.apitest.org"
 
 		// fire up
 		// We create our requist Client
-		result := IsValidBase(baseUrl)
+		result := IsValidBase(baseURL)
 		// if result equals to expected?
 		// we don't have a new Client?
 		assert.Equal(t, true, result)
@@ -186,12 +186,12 @@ func TestParseBaseURL(t *testing.T) {
 
 	t.Run("return empty string if a invalid baseURL", func(t *testing.T) {
 		// Define some vars
-		var baseUrl = "https://?bar&?foo"
+		var baseURL = "https://?bar&?foo"
 		var expected = ""
 
 		// fire up
 		// We create our requist Client
-		result := ParseBaseURL(baseUrl)
+		result := ParseBaseURL(baseURL)
 		// if result equals to expected?
 		// we don't have a new Client?
 		assert.Equal(t, expected, result)
@@ -199,12 +199,12 @@ func TestParseBaseURL(t *testing.T) {
 
 	t.Run("return same if a valid baseURL", func(t *testing.T) {
 		// Define some vars
-		var baseUrl = "https://live.apitest.org/path/to/resource"
+		var baseURL = "https://live.apitest.org/path/to/resource"
 		var expected = "https://live.apitest.org"
 
 		// fire up
 		// We create our requist Client
-		result := ParseBaseURL(baseUrl)
+		result := ParseBaseURL(baseURL)
 		// if result equals to expected?
 		// we don't have a new Client?
 		assert.Equal(t, expected, result)
@@ -215,13 +215,13 @@ func TestWithPathURL(t *testing.T) {
 
 	t.Run("return empty string if a in valid baseURL and invalid path", func(t *testing.T) {
 		// Define some vars
-		var baseUrl = "https://https://https://google.com/"
+		var baseURL = "https://https://https://google.com/"
 		var path = "/¿test=+to/resource"
 		var expected = ""
 
 		// fire up
 		// We create our requist Client
-		result := ParsePathURL(baseUrl, path)
+		result := ParsePathURL(baseURL, path)
 		// if result equals to expected?
 		// we don't have a new Client?
 		assert.Equal(t, expected, result)
@@ -229,27 +229,27 @@ func TestWithPathURL(t *testing.T) {
 
 	t.Run("return empty string if a in invalid baseURL and valid path", func(t *testing.T) {
 		// Define some vars
-		var baseUrl = "file:///folder/mode"
+		var baseURL = "file:///folder/mode"
 		var path = "/test/resource"
 		var expected = ""
 
 		// fire up
 		// We create our requist Client
-		result := ParsePathURL(baseUrl, path)
+		result := ParsePathURL(baseURL, path)
 		// if result equals to expected?
 		// we don't have a new Client?
 		assert.Equal(t, expected, result)
 	})
 
-	t.Run("return fullUrl string if a valid baseUrl and path", func(t *testing.T) {
+	t.Run("return fullUrl string if a valid baseURL and path", func(t *testing.T) {
 		// Define some vars
-		var baseUrl = "https://live.apitest.org"
+		var baseURL = "https://live.apitest.org"
 		var path = "/path/to/resource"
 		var expected = path
 
 		// fire up
 		// We create our requist Client
-		result := ParsePathURL(baseUrl, path)
+		result := ParsePathURL(baseURL, path)
 		// if result equals to expected?
 		// we don't have a new Client?
 		assert.Equal(t, expected, result)

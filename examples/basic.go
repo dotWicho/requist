@@ -43,7 +43,7 @@ func main() {
 	// We create the client using the server base URL we want to access
 	client := requist.New("https://httpbin.org")
 	// We want the answer in JSON format
-	client.Accept(requist.JsonContentType)
+	client.Accept(requist.JSONContentType)
 
 	// Instantiate where we will get the answer
 	getSuccess := &GetResponse{}

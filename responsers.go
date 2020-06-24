@@ -38,7 +38,7 @@ type jsonResponse struct{}
 
 // Accept just return the Accept Type (application/json)
 func (r jsonResponse) Accept() string {
-	return JsonContentType
+	return JSONContentType
 }
 
 // Decode decodes the Response Body into the value pointed to by v

@@ -117,11 +117,11 @@ func TestRequist_SetClientTransport(t *testing.T) {
 func TestRequist_SetClientTimeout(t *testing.T) {
 
 	// We define some variables
-	var baseUrl = "http://live.apitest.org"
+	var baseURL = "http://live.apitest.org"
 	var duration = 10 * time.Second
 
 	// We create our requist Client
-	emptyClient := New(baseUrl)
+	emptyClient := New(baseURL)
 
 	// was modified out Client?
 	assert.NotNil(t, emptyClient)
@@ -142,10 +142,10 @@ func TestRequist_SetClientTimeout(t *testing.T) {
 func TestRequist_BodyProvider(t *testing.T) {
 
 	// We define some variables
-	var baseUrl = "http://live.apitest.org"
+	var baseURL = "http://live.apitest.org"
 
 	// We create our requist Client
-	emptyClient := New(baseUrl)
+	emptyClient := New(baseURL)
 
 	// was modified out Client?
 	assert.NotNil(t, emptyClient)
@@ -172,7 +172,7 @@ func TestRequist_BodyProvider(t *testing.T) {
 		json := &jsonProvider{}
 
 		// our data is correct?
-		assert.EqualValues(t, JsonContentType, json.ContentType())
+		assert.EqualValues(t, JSONContentType, json.ContentType())
 	})
 
 	t.Run("set www-urlencoded provider", func(t *testing.T) {
@@ -207,10 +207,10 @@ func TestRequist_BodyProvider(t *testing.T) {
 func TestRequist_BodyAsForm(t *testing.T) {
 
 	// We define some variables
-	var baseUrl = "http://live.apitest.org"
+	var baseURL = "http://live.apitest.org"
 
 	// We create our requist Client
-	emptyClient := New(baseUrl)
+	emptyClient := New(baseURL)
 
 	// was modified out Client?
 	assert.NotNil(t, emptyClient)
@@ -252,10 +252,10 @@ func TestRequist_BodyAsForm(t *testing.T) {
 func TestRequist_BodyAsJSON(t *testing.T) {
 
 	// We define some variables
-	var baseUrl = "http://live.apitest.org"
+	var baseURL = "http://live.apitest.org"
 
 	// We create our requist Client
-	emptyClient := New(baseUrl)
+	emptyClient := New(baseURL)
 
 	// was modified out Client?
 	assert.NotNil(t, emptyClient)
@@ -297,10 +297,10 @@ func TestRequist_BodyAsJSON(t *testing.T) {
 func TestRequist_BodyAsText(t *testing.T) {
 
 	// We define some variables
-	var baseUrl = "http://live.apitest.org"
+	var baseURL = "http://live.apitest.org"
 
 	// We create our requist Client
-	emptyClient := New(baseUrl)
+	emptyClient := New(baseURL)
 
 	// was modified out Client?
 	assert.NotNil(t, emptyClient)
@@ -337,10 +337,10 @@ func TestRequist_BodyAsText(t *testing.T) {
 func TestRequist_BodyResponse(t *testing.T) {
 
 	// We define some variables
-	var baseUrl = "http://live.apitest.org"
+	var baseURL = "http://live.apitest.org"
 
 	// We create our requist Client
-	emptyClient := New(baseUrl)
+	emptyClient := New(baseURL)
 
 	// was modified out Client?
 	assert.NotNil(t, emptyClient)
@@ -367,7 +367,7 @@ func TestRequist_BodyResponse(t *testing.T) {
 		json := &jsonResponse{}
 
 		// our data is correct?
-		assert.EqualValues(t, JsonContentType, json.Accept())
+		assert.EqualValues(t, JSONContentType, json.Accept())
 	})
 
 	t.Run("set www-urlencoded response", func(t *testing.T) {
@@ -402,10 +402,10 @@ func TestRequist_BodyResponse(t *testing.T) {
 func TestRequist_PrepareRequestURI(t *testing.T) {
 
 	// We define some variables
-	var baseUrl = "http://live.apitest.org"
+	var baseURL = "http://live.apitest.org"
 
 	// We create our requist Client
-	emptyClient := New(baseUrl)
+	emptyClient := New(baseURL)
 
 	// was modified out Client?
 	assert.NotNil(t, emptyClient)
@@ -430,11 +430,11 @@ func TestRequist_PrepareRequestURI(t *testing.T) {
 
 	t.Run("get just base if set valid Base and empty Path", func(t *testing.T) {
 
-		emptyClient.Base(baseUrl)
+		emptyClient.Base(baseURL)
 		emptyClient.Path("")
 
 		result, err := emptyClient.PrepareRequestURI()
-		expected := baseUrl
+		expected := baseURL
 
 		// was modified out Client?
 		assert.NotNil(t, emptyClient)
@@ -450,11 +450,11 @@ func TestRequist_PrepareRequestURI(t *testing.T) {
 
 		// set the path to
 		aPath := "/users"
-		emptyClient.Base(baseUrl)
+		emptyClient.Base(baseURL)
 		emptyClient.Path(aPath)
 
 		result, err := emptyClient.PrepareRequestURI()
-		expected := baseUrl + aPath
+		expected := baseURL + aPath
 
 		// was modified out Client?
 		assert.NotNil(t, emptyClient)
@@ -470,13 +470,13 @@ func TestRequist_PrepareRequestURI(t *testing.T) {
 
 		// set the path to
 		aPath := "/users"
-		emptyClient.Base(baseUrl)
+		emptyClient.Base(baseURL)
 		emptyClient.Path(aPath)
 		emptyClient.AddQueryParam("name", "Jonah Doe")
 		emptyClient.AddQueryParam("hobbies", "Bike")
 
 		result, err := emptyClient.PrepareRequestURI()
-		expected := baseUrl + aPath + "?" + emptyClient.queries.Encode()
+		expected := baseURL + aPath + "?" + emptyClient.queries.Encode()
 
 		// was modified out Client?
 		assert.NotNil(t, emptyClient)
@@ -513,13 +513,13 @@ func TestRequist_Accept(t *testing.T) {
 
 	t.Run("set JSON Accept Header", func(t *testing.T) {
 		// We set Accept Header to application/json
-		emptyClient.Accept(JsonContentType)
+		emptyClient.Accept(JSONContentType)
 
 		// was modified out Client?
 		assert.NotNil(t, emptyClient)
 
 		// our data is correct?
-		assert.EqualValues(t, JsonContentType, emptyClient.header.Get(acceptHeader))
+		assert.EqualValues(t, JSONContentType, emptyClient.header.Get(acceptHeader))
 	})
 
 	t.Run("set www-urlencoded Accept Header", func(t *testing.T) {
@@ -549,11 +549,11 @@ func TestRequist_Accept(t *testing.T) {
 func TestRequist_AddHeader(t *testing.T) {
 
 	// We define some variables
-	var baseUrl = "http://live.apitest.org"
+	var baseURL = "http://live.apitest.org"
 	var header = map[string]string{"key": "X-Header", "value": "false"}
 
 	// We create our requist Client
-	emptyClient := New(baseUrl)
+	emptyClient := New(baseURL)
 
 	// was modified out Client?
 	assert.NotNil(t, emptyClient)
@@ -577,11 +577,11 @@ func TestRequist_AddHeader(t *testing.T) {
 func TestRequist_SetHeader(t *testing.T) {
 
 	// We define some variables
-	var baseUrl = "http://live.apitest.org"
+	var baseURL = "http://live.apitest.org"
 	var header = map[string]string{"key": "X-Header", "value": "false"}
 
 	// We create our requist Client
-	emptyClient := New(baseUrl)
+	emptyClient := New(baseURL)
 
 	// was modified out Client?
 	assert.NotNil(t, emptyClient)
@@ -605,11 +605,11 @@ func TestRequist_SetHeader(t *testing.T) {
 func TestRequist_DelHeader(t *testing.T) {
 
 	// We define some variables
-	var baseUrl = "http://live.apitest.org"
+	var baseURL = "http://live.apitest.org"
 	var header = map[string]string{"key": "X-Header", "value": "false"}
 
 	// We create our requist Client
-	emptyClient := New(baseUrl)
+	emptyClient := New(baseURL)
 
 	// was modified out Client?
 	assert.NotNil(t, emptyClient)
@@ -652,11 +652,11 @@ func TestRequist_DelHeader(t *testing.T) {
 func TestRequist_AddQueryParam(t *testing.T) {
 
 	// We define some variables
-	var baseUrl = "http://live.apitest.org"
+	var baseURL = "http://live.apitest.org"
 	var queryparams = map[string]string{"key": "X-Header", "value": "false"}
 
 	// We create our requist Client
-	emptyClient := New(baseUrl)
+	emptyClient := New(baseURL)
 
 	// was modified out Client?
 	assert.NotNil(t, emptyClient)
@@ -680,11 +680,11 @@ func TestRequist_AddQueryParam(t *testing.T) {
 func TestRequist_SetQueryParam(t *testing.T) {
 
 	// We define some variables
-	var baseUrl = "http://live.apitest.org"
+	var baseURL = "http://live.apitest.org"
 	var queryparams = map[string]string{"key": "X-Header", "value": "false"}
 
 	// We create our requist Client
-	emptyClient := New(baseUrl)
+	emptyClient := New(baseURL)
 
 	// was modified out Client?
 	assert.NotNil(t, emptyClient)
@@ -708,11 +708,11 @@ func TestRequist_SetQueryParam(t *testing.T) {
 func TestRequist_DelQueryParam(t *testing.T) {
 
 	// We define some variables
-	var baseUrl = "http://live.apitest.org"
+	var baseURL = "http://live.apitest.org"
 	var queryparams = map[string]string{"key": "X-Header", "value": "false"}
 
 	// We create our requist Client
-	emptyClient := New(baseUrl)
+	emptyClient := New(baseURL)
 
 	// was modified out Client?
 	assert.NotNil(t, emptyClient)
@@ -755,11 +755,11 @@ func TestRequist_DelQueryParam(t *testing.T) {
 func TestRequist_CleanQueryParams(t *testing.T) {
 
 	// We define some variables
-	var baseUrl = "http://live.apitest.org"
+	var baseURL = "http://live.apitest.org"
 	var queryparams = map[string]string{"key": "X-Header", "value": "false"}
 
 	// We create our requist Client
-	emptyClient := New(baseUrl)
+	emptyClient := New(baseURL)
 
 	// was modified out Client?
 	assert.NotNil(t, emptyClient)
@@ -802,10 +802,10 @@ func TestRequist_CleanQueryParams(t *testing.T) {
 func TestRequist_SetBasicAuth(t *testing.T) {
 
 	// We define some variables
-	var baseUrl = "http://live.apitest.org"
+	var baseURL = "http://live.apitest.org"
 
 	// We create our requist Client
-	emptyClient := New(baseUrl)
+	emptyClient := New(baseURL)
 
 	// was modified out Client?
 	assert.NotNil(t, emptyClient)
@@ -880,10 +880,10 @@ func TestRequist_SetBasicAuth(t *testing.T) {
 func TestRequist_StatusCode(t *testing.T) {
 
 	// We define some variables
-	var baseUrl = "http://live.apitest.org"
+	var baseURL = "http://live.apitest.org"
 
 	// We create our requist Client
-	emptyClient := New(baseUrl)
+	emptyClient := New(baseURL)
 
 	// was modified out Client?
 	assert.NotNil(t, emptyClient)
@@ -916,10 +916,10 @@ func TestRequist_StatusCode(t *testing.T) {
 func TestRequist_GetBasicAuth(t *testing.T) {
 
 	// We define some variables
-	var baseUrl = "http://live.apitest.org"
+	var baseURL = "http://live.apitest.org"
 
 	// We create our requist Client
-	emptyClient := New(baseUrl)
+	emptyClient := New(baseURL)
 
 	// was modified out Client?
 	assert.NotNil(t, emptyClient)
@@ -994,15 +994,15 @@ func TestRequist_GetBasicAuth(t *testing.T) {
 func TestRequist_Base(t *testing.T) {
 
 	// We define some variables
-	var baseUrl = "http://live.apitest.org"
+	var baseURL = "http://live.apitest.org"
 
 	// We create our requist Client
-	emptyClient := New(baseUrl)
+	emptyClient := New(baseURL)
 
 	// was modified out Client?
 	assert.NotNil(t, emptyClient)
 
-	t.Run("get empty Base if baseUrl is empty", func(t *testing.T) {
+	t.Run("get empty Base if baseURL is empty", func(t *testing.T) {
 
 		emptyClient.Base("")
 		expected := ""
@@ -1014,7 +1014,7 @@ func TestRequist_Base(t *testing.T) {
 		assert.EqualValues(t, expected, emptyClient.url)
 	})
 
-	t.Run("get empty Base if baseUrl is invalid", func(t *testing.T) {
+	t.Run("get empty Base if baseURL is invalid", func(t *testing.T) {
 
 		emptyClient.Base("file:///root/test/filename.json")
 		expected := ""
@@ -1026,26 +1026,26 @@ func TestRequist_Base(t *testing.T) {
 		assert.EqualValues(t, expected, emptyClient.url)
 	})
 
-	t.Run("get same Base if baseUrl is valid", func(t *testing.T) {
+	t.Run("get same Base if baseURL is valid", func(t *testing.T) {
 
-		emptyClient.Base(baseUrl)
-		expected := baseUrl
+		emptyClient.Base(baseURL)
+		expected := baseURL
 
 		// was modified out Client?
 		assert.NotNil(t, emptyClient)
 
 		// our data is correct?
-		assert.EqualValues(t, expected, baseUrl)
+		assert.EqualValues(t, expected, baseURL)
 	})
 }
 
 func TestRequist_Path(t *testing.T) {
 
 	// We define some variables
-	var baseUrl = "http://live.apitest.org"
+	var baseURL = "http://live.apitest.org"
 
 	// We create our requist Client
-	emptyClient := New(baseUrl)
+	emptyClient := New(baseURL)
 
 	// was modified out Client?
 	assert.NotNil(t, emptyClient)
@@ -1096,10 +1096,10 @@ func TestRequist_New(t *testing.T) {
 
 	t.Run("return nil if a empty baseURL", func(t *testing.T) {
 		// Define some vars
-		var baseUrl = ""
+		var baseURL = ""
 		// fire up
 		// We create our requist Client
-		result := New(baseUrl)
+		result := New(baseURL)
 		// if result equals to expected?
 		// we don't have a new Client?
 		assert.Nil(t, result)
@@ -1107,10 +1107,10 @@ func TestRequist_New(t *testing.T) {
 
 	t.Run("return nil if a invalid baseURL", func(t *testing.T) {
 		// Define some vars
-		var baseUrl = "https://?bar&?foo"
+		var baseURL = "https://?bar&?foo"
 		// fire up
 		// We create our requist Client
-		result := New(baseUrl)
+		result := New(baseURL)
 		// if result equals to expected?
 		// we don't have a new Client?
 		assert.Nil(t, result)
@@ -1118,10 +1118,10 @@ func TestRequist_New(t *testing.T) {
 
 	t.Run("return new Client if a valid baseURL", func(t *testing.T) {
 		// Define some vars
-		var baseUrl = "http://live.apitest.org"
+		var baseURL = "http://live.apitest.org"
 		// fire up
 		// We create our requist Client
-		result := New(baseUrl)
+		result := New(baseURL)
 		// if result equals to expected?
 		// we have a new Client?
 		assert.NotNil(t, result)
@@ -1144,7 +1144,7 @@ func TestRequist_Get(t *testing.T) {
 		emptyClient := New(server.URL)
 
 		// Set JSON response body
-		emptyClient.Accept(JsonContentType)
+		emptyClient.Accept(JSONContentType)
 
 		// fire up the request
 		client, err := emptyClient.Get("/user/1000", success, fail)
@@ -1176,7 +1176,7 @@ func TestRequist_Get(t *testing.T) {
 		emptyClient := New(server.URL)
 
 		// Set JSON response body
-		emptyClient.Accept(JsonContentType)
+		emptyClient.Accept(JSONContentType)
 
 		// fire up the request
 		client, err := emptyClient.Get("/user", success, fail)
@@ -1212,7 +1212,7 @@ func TestRequist_Put(t *testing.T) {
 
 	// We create our requist Client
 	emptyClient := New(server.URL)
-	emptyClient.Accept(JsonContentType)
+	emptyClient.Accept(JSONContentType)
 
 	// Some variables
 	success := &GenericResponse{}
@@ -1247,7 +1247,7 @@ func TestRequist_Post(t *testing.T) {
 
 	// We create our requist Client
 	emptyClient := New(server.URL)
-	emptyClient.Accept(JsonContentType)
+	emptyClient.Accept(JSONContentType)
 
 	// Some variables
 	success := &GenericResponse{}
@@ -1282,7 +1282,7 @@ func TestRequist_Patch(t *testing.T) {
 
 	// We create our requist Client
 	emptyClient := New(server.URL)
-	emptyClient.Accept(JsonContentType)
+	emptyClient.Accept(JSONContentType)
 
 	// Some variables
 	success := &GenericResponse{}
@@ -1316,7 +1316,7 @@ func TestRequist_Delete(t *testing.T) {
 
 	// We create our requist Client
 	emptyClient := New(server.URL)
-	emptyClient.Accept(JsonContentType)
+	emptyClient.Accept(JSONContentType)
 
 	// Some variables
 	var fail interface{}
@@ -1349,7 +1349,7 @@ func TestRequist_Options(t *testing.T) {
 
 	// We create our requist Client
 	emptyClient := New(server.URL)
-	emptyClient.Accept(JsonContentType)
+	emptyClient.Accept(JSONContentType)
 
 	// Some variables
 	var fail interface{}
@@ -1382,7 +1382,7 @@ func TestRequist_Connect(t *testing.T) {
 
 	// We create our requist Client
 	emptyClient := New(server.URL)
-	emptyClient.Accept(JsonContentType)
+	emptyClient.Accept(JSONContentType)
 
 	// Some variables
 	var fail interface{}

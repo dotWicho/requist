@@ -245,7 +245,7 @@ func (r *Requist) Accept(accept string) {
 	switch accept {
 	case FormContentType:
 		r.BodyResponse(formResponse{})
-	case JsonContentType:
+	case JSONContentType:
 		r.BodyResponse(jsonResponse{})
 	case TextContentType:
 		r.BodyResponse(textResponse{})
