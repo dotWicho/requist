@@ -15,8 +15,6 @@ import (
 
 // Requist interface Define all Methods
 type requist interface {
-	New(baseURL string) *Requist
-
 	SetClientTransport(transport *http.Transport)
 	SetClientTimeout(timeout time.Duration)
 	BodyProvider(body BodyProvider) *Requist
@@ -26,7 +24,7 @@ type requist interface {
 	BodyResponse(body BodyResponse) *Requist
 	Accept(accept string)
 
-	addQueryParams() (string, error)
+	PrepareRequestURI() (string, error)
 
 	AddHeader(key, value string)
 	SetHeader(key, value string)
@@ -38,17 +36,17 @@ type requist interface {
 	SetBasicAuth(username, password string) *Requist
 	StatusCode() int
 	GetBasicAuth() string
+
 	Base(base string) *Requist
 	Path(path string) *Requist
 	Method(method string) *Requist
-	Head(path string, success, failure interface{}) (*Requist, error)
+
 	Get(path string, success, failure interface{}) (*Requist, error)
 	Put(path string, success, failure interface{}) (*Requist, error)
 	Post(path string, success, failure interface{}) (*Requist, error)
 	Patch(path string, success, failure interface{}) (*Requist, error)
 	Delete(path string, success, failure interface{}) (*Requist, error)
 	Options(path string, success, failure interface{}) (*Requist, error)
-	Trace(path string, success, failure interface{}) (*Requist, error)
 	Connect(path string, success, failure interface{}) (*Requist, error)
 }
 
@@ -82,10 +80,11 @@ type Requist struct {
 //
 func New(baseURL string) *Requist {
 
-	r := new(Requist)
+	r := &Requist{}
 
-	if baseURL != "" {
-		r.url = parseBaseURL(baseURL)
+	r.url = ParseBaseURL(baseURL)
+	if r.url == "" {
+		return nil
 	}
 	r.header = &http.Header{}
 	r.queries = &url.Values{}
@@ -96,24 +95,7 @@ func New(baseURL string) *Requist {
 	r.response = nil
 
 	return r.Base(r.url)
-}
 
-// New class function
-//  @param Requist class pointer, previous existing instance
-//  @return Requist class pointer who clone some data from passed class
-//
-func (r *Requist) New(baseURL string) *Requist {
-	req := new(Requist)
-
-	if baseURL != "" {
-		req.url = parseBaseURL(baseURL)
-	}
-	req.header = r.header
-	req.queries = r.queries
-	req.provider = r.provider
-	req.response = r.response
-
-	return req.Base(req.url)
 }
 
 // SetClientTransport take transport param and set client HTTP Transport
@@ -125,7 +107,7 @@ func (r *Requist) SetClientTransport(transport *http.Transport) {
 // SetClientTimeout take timeout param and set client Timeout seconds based
 func (r *Requist) SetClientTimeout(timeout time.Duration) {
 
-	r.client.Timeout = timeout * time.Second
+	r.client.Timeout = timeout
 }
 
 //#$$=== Core function of Requist class
@@ -133,7 +115,7 @@ func (r *Requist) SetClientTimeout(timeout time.Duration) {
 // Request ... Here it's where the magic show up
 func (r *Requist) Request(success, failure interface{}) (*Requist, error) {
 
-	requestPath, err := r.addQueryParams()
+	requestPath, err := r.PrepareRequestURI()
 	if err != nil {
 		return r, err
 	}
@@ -274,13 +256,14 @@ func (r *Requist) Accept(accept string) {
 
 //#$$=== QueryParams manipulation functions
 
-// addQueryParams ...
-func (r *Requist) addQueryParams() (string, error) {
+// PrepareRequestURI ...
+func (r *Requist) PrepareRequestURI() (string, error) {
 
-	reqURL, err := url.Parse(parseBaseURL(r.url))
+	reqURL, err := url.Parse(ParseBaseURL(r.url))
 	if err != nil {
 		return "", err
 	}
+	reqURL.Path = r.path
 	reqURL.RawQuery = r.queries.Encode()
 
 	return reqURL.String(), err
@@ -368,7 +351,7 @@ func (r *Requist) GetBasicAuth() string {
 // Base sets base url to use for a client
 func (r *Requist) Base(base string) *Requist {
 
-	r.url = parseBaseURL(base)
+	r.url = ParseBaseURL(base)
 
 	return r
 }
@@ -376,7 +359,7 @@ func (r *Requist) Base(base string) *Requist {
 // Path sets request path to use in next request
 func (r *Requist) Path(path string) *Requist {
 
-	r.url = parsePathURL(r.url, path)
+	r.path = ParsePathURL(r.url, path)
 
 	return r
 }
@@ -389,12 +372,6 @@ func (r *Requist) Method(method string) *Requist {
 }
 
 //#$$=== Requist functions executers, Correspond to HTTP Methods
-
-// Head implement HEAD HTTP Method
-func (r *Requist) Head(path string, success, failure interface{}) (*Requist, error) {
-
-	return r.Method(http.MethodHead).Path(path).Request(success, failure)
-}
 
 // Get implement GET HTTP Method
 func (r *Requist) Get(path string, success, failure interface{}) (*Requist, error) {
@@ -430,12 +407,6 @@ func (r *Requist) Delete(path string, success, failure interface{}) (*Requist, e
 func (r *Requist) Options(path string, success, failure interface{}) (*Requist, error) {
 
 	return r.Method(http.MethodOptions).Path(path).Request(success, failure)
-}
-
-// Trace implement TRACE HTTP Method
-func (r *Requist) Trace(path string, success, failure interface{}) (*Requist, error) {
-
-	return r.Method(http.MethodTrace).Path(path).Request(success, failure)
 }
 
 // Connect implement CONNECT HTTP Method
