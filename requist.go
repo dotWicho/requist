@@ -2,6 +2,8 @@ package requist
 
 import (
 	"encoding/base64"
+	"strings"
+
 	// We use go-cleanhttp because it contains a better implementation of http.Transport
 	// and allows us to abstract from these changes
 	"github.com/hashicorp/go-cleanhttp"
@@ -367,7 +369,32 @@ func (r *Requist) Path(path string) *Requist {
 // Method set HTTP Method to execute
 func (r *Requist) Method(method string) *Requist {
 
-	r.method = method
+	switch strings.ToUpper(method) {
+	case http.MethodGet:
+		r.method = http.MethodGet
+
+	case http.MethodPut:
+		r.method = http.MethodPut
+
+	case http.MethodPost:
+		r.method = http.MethodPost
+
+	case http.MethodPatch:
+		r.method = http.MethodPatch
+
+	case http.MethodDelete:
+		r.method = http.MethodDelete
+
+	case http.MethodOptions:
+		r.method = http.MethodOptions
+
+	case http.MethodConnect:
+		r.method = http.MethodConnect
+
+	default:
+		r.method = http.MethodGet
+	}
+
 	return r
 }
 
