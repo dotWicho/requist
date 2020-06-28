@@ -1088,7 +1088,65 @@ func TestRequist_Path(t *testing.T) {
 	})
 }
 
-func TestRequist_Method(t *testing.T) {}
+func TestRequist_Method(t *testing.T) {
+
+	// We define some variables
+	var baseURL = "http://live.apitest.org"
+
+	// We create our requist Client
+	emptyClient := New(baseURL)
+
+	// was modified out Client?
+	assert.NotNil(t, emptyClient)
+
+	t.Run("get method defined to GET if method passed is empty", func(t *testing.T) {
+
+		emptyClient.Method("")
+		expected := "GET"
+
+		// was modified out Client?
+		assert.NotNil(t, emptyClient)
+
+		// our data is correct?
+		assert.EqualValues(t, expected, emptyClient.method)
+	})
+
+	t.Run("get method defined to GET if method passed is invalid", func(t *testing.T) {
+
+		emptyClient.Method("INVALID")
+		expected := "GET"
+
+		// was modified out Client?
+		assert.NotNil(t, emptyClient)
+
+		// our data is correct?
+		assert.EqualValues(t, expected, emptyClient.method)
+	})
+
+	t.Run("get method defined to GET if method passed is get (case insensitive)", func(t *testing.T) {
+
+		emptyClient.Method("get")
+		expected := "GET"
+
+		// was modified out Client?
+		assert.NotNil(t, emptyClient)
+
+		// our data is correct?
+		assert.EqualValues(t, expected, emptyClient.method)
+	})
+
+	t.Run("get method defined to DELETE if method passed is delete (case insensitive)", func(t *testing.T) {
+
+		emptyClient.Method("INVALID")
+		expected := "GET"
+
+		// was modified out Client?
+		assert.NotNil(t, emptyClient)
+
+		// our data is correct?
+		assert.EqualValues(t, expected, emptyClient.method)
+	})
+}
 
 //===
 
