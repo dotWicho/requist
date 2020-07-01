@@ -2,6 +2,7 @@ package requist
 
 import (
 	"encoding/base64"
+	"github.com/dotWicho/logger"
 	"strings"
 
 	// We use go-cleanhttp because it contains a better implementation of http.Transport
@@ -12,6 +13,9 @@ import (
 	"net/url"
 	"time"
 )
+
+//=== Logger default
+var Logger *logger.StandardLogger = logger.NewLogger(false)
 
 //=== Requests manipulations interface
 
@@ -82,10 +86,12 @@ type Requist struct {
 //
 func New(baseURL string) *Requist {
 
+	Logger.Debug("Creating a new Client")
 	r := &Requist{}
 
 	r.url = ParseBaseURL(baseURL)
 	if r.url == "" {
+		Logger.Error("Invalid baseURL = %s", baseURL)
 		return nil
 	}
 	r.header = &http.Header{}
@@ -97,17 +103,20 @@ func New(baseURL string) *Requist {
 	r.response = nil
 
 	return r.Base(r.url)
-
 }
 
 // SetClientTransport take transport param and set client HTTP Transport
 func (r *Requist) SetClientTransport(transport *http.Transport) {
+
+	Logger.Debug("Setting Client Transport %+v", transport)
 
 	r.client.Transport = transport
 }
 
 // SetClientTimeout take timeout param and set client Timeout seconds based
 func (r *Requist) SetClientTimeout(timeout time.Duration) {
+
+	Logger.Debug("Setting Client Timeout %+v", timeout)
 
 	r.client.Timeout = timeout
 }
@@ -117,10 +126,13 @@ func (r *Requist) SetClientTimeout(timeout time.Duration) {
 // Request ... Here it's where the magic show up
 func (r *Requist) Request(success, failure interface{}) (*Requist, error) {
 
+	Logger.Debug("Firing a Request %T %T", success, failure)
+
 	requestPath, err := r.PrepareRequestURI()
 	if err != nil {
 		return r, err
 	}
+	Logger.Debug("Request URI to %s", requestPath)
 
 	var body io.Reader
 	if r.provider != nil {
@@ -149,6 +161,7 @@ func (r *Requist) Request(success, failure interface{}) (*Requist, error) {
 	defer r.CleanQueryParams()
 
 	r.statuscode = response.StatusCode
+	Logger.Debug("Response StatusCode %d", r.statuscode)
 
 	// Decode from r.response Accept() type
 	if (success != nil || failure != nil) && r.statuscode != 204 {
@@ -156,6 +169,8 @@ func (r *Requist) Request(success, failure interface{}) (*Requist, error) {
 			if success != nil {
 
 				if r.response != nil {
+					Logger.Debug("Going to decode Response Body (%T) into success (%T)", r.response, success)
+
 					if err := r.response.Decode(response.Body, success); err != nil {
 						return r, err
 					}
@@ -165,6 +180,8 @@ func (r *Requist) Request(success, failure interface{}) (*Requist, error) {
 			if failure != nil {
 
 				if r.response != nil {
+					Logger.Debug("Going to decode Response Body (%T) into failure (%T)", r.response, failure)
+
 					if err := r.response.Decode(response.Body, failure); err != nil {
 						return r, err
 					}
@@ -179,6 +196,8 @@ func (r *Requist) Request(success, failure interface{}) (*Requist, error) {
 
 // BodyProvider sets the Requests's body provider from original BodyProvider interface{}
 func (r *Requist) BodyProvider(body BodyProvider) *Requist {
+
+	Logger.Debug("Setting BodyProvider (%T)", body)
 
 	if body == nil {
 		return r
@@ -229,6 +248,8 @@ func (r *Requist) BodyAsText(body interface{}) *Requist {
 // BodyResponse sets the response's body
 func (r *Requist) BodyResponse(body BodyResponse) *Requist {
 
+	Logger.Debug("Setting BodyResponse (%T)", body)
+
 	if body == nil {
 		return r
 	}
@@ -244,6 +265,9 @@ func (r *Requist) BodyResponse(body BodyResponse) *Requist {
 
 // Accept sets the response's body mimeType
 func (r *Requist) Accept(accept string) {
+
+	Logger.Debug("Setting Accept (%s)", accept)
+
 	switch accept {
 	case FormContentType:
 		r.BodyResponse(formResponse{})
