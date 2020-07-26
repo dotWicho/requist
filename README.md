@@ -39,7 +39,7 @@ module myclient
 go 1.13
 
 require (
-	github.com/dotWicho/requist v1.2.3
+	github.com/dotWicho/requist latest
 )
 ```
 
