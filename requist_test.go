@@ -1,6 +1,7 @@
 package requist
 
 import (
+	"context"
 	"encoding/base64"
 	"github.com/hashicorp/go-cleanhttp"
 	"github.com/stretchr/testify/assert"
@@ -137,6 +138,51 @@ func TestRequist_SetClientTimeout(t *testing.T) {
 
 	// We have a Timeout set?
 	assert.Equal(t, duration, emptyClient.client.Timeout)
+}
+
+func TestRequist_SetClientContext(t *testing.T) {
+
+	t.Run("Must be success with Background context", func(t *testing.T) {
+		// We define some variables
+		baseURL := "http://live.apitest.org"
+		ctx := context.Background()
+
+		// We create our requist Client
+		emptyClient := New(baseURL)
+
+		// was modified out Client?
+		assert.NotNil(t, emptyClient)
+
+		// We set to background context
+		emptyClient.SetClientContext(ctx)
+
+		// was modified out Client?
+		assert.NotNil(t, emptyClient)
+
+		// We have a Timeout set?
+		assert.Equal(t, ctx, emptyClient.ctx)
+	})
+
+	t.Run("Must be success with Cancel context", func(t *testing.T) {
+		// We define some variables
+		baseURL := "http://live.apitest.org"
+		ctx, _ := context.WithCancel(context.Background())
+
+		// We create our requist Client
+		emptyClient := New(baseURL)
+
+		// was modified out Client?
+		assert.NotNil(t, emptyClient)
+
+		// We set to background context
+		emptyClient.SetClientContext(ctx)
+
+		// was modified out Client?
+		assert.NotNil(t, emptyClient)
+
+		// We have a Timeout set?
+		assert.Equal(t, ctx, emptyClient.ctx)
+	})
 }
 
 func TestRequist_BodyProvider(t *testing.T) {

@@ -1,6 +1,7 @@
 package requist
 
 import (
+	"context"
 	"encoding/base64"
 	"github.com/dotWicho/logger"
 	"strings"
@@ -15,14 +16,16 @@ import (
 )
 
 //=== Logger default
-var Logger *logger.StandardLogger = logger.NewLogger(false)
+var Logger = logger.NewLogger(false)
 
 //=== Requests manipulations interface
 
 // Requist interface Define all Methods
-type requist interface {
+type Operations interface {
 	SetClientTransport(transport *http.Transport)
 	SetClientTimeout(timeout time.Duration)
+	SetClientContext(context context.Context)
+
 	BodyProvider(body BodyProvider) *Requist
 	BodyAsForm(body interface{}) *Requist
 	BodyAsJSON(body interface{}) *Requist
@@ -72,6 +75,7 @@ type Requist struct {
 	client  *http.Client
 	header  *http.Header
 	queries *url.Values
+	ctx     context.Context
 
 	// Bodies, Request and Response
 	provider BodyProvider
@@ -97,6 +101,7 @@ func New(baseURL string) *Requist {
 	r.header = &http.Header{}
 	r.queries = &url.Values{}
 	r.client = &http.Client{}
+	r.ctx = context.Background()
 	r.SetClientTransport(cleanhttp.DefaultTransport())
 	r.SetClientTimeout(defaultTimeout)
 	r.provider = nil
@@ -121,6 +126,13 @@ func (r *Requist) SetClientTimeout(timeout time.Duration) {
 	r.client.Timeout = timeout
 }
 
+// SetClientTransport take transport param and set client HTTP Transport
+func (r *Requist) SetClientContext(context context.Context) {
+
+	Logger.Debug("Setting Client Context %+v", context)
+	r.ctx = context
+}
+
 //#$$=== Core function of Requist class
 
 // Request ... Here it's where the magic show up
@@ -128,8 +140,10 @@ func (r *Requist) Request(success, failure interface{}) (*Requist, error) {
 
 	Logger.Debug("Firing a Request %T %T", success, failure)
 
-	requestPath, err := r.PrepareRequestURI()
-	if err != nil {
+	var requestPath string
+	var err error
+
+	if requestPath, err = r.PrepareRequestURI(); err != nil {
 		return r, err
 	}
 	Logger.Debug("Request URI to %s", requestPath)
@@ -144,22 +158,26 @@ func (r *Requist) Request(success, failure interface{}) (*Requist, error) {
 	}
 
 	// Prepares request struct with all fields needed
-	request, err := http.NewRequest(r.method, requestPath, body)
-	if err != nil {
+	var request *http.Request
+
+	if request, err = http.NewRequestWithContext(r.ctx, r.method, requestPath, body); err != nil {
 		return r, err
 	}
+
 	// Proceed to clone headers pre populated to the request class
 	request.Header = r.header.Clone()
 
-	// Fire up the request agains the server
-	response, err := r.client.Do(request)
-	if err != nil {
+	// Fire up the request against the server
+	var response *http.Response
+	if response, err = r.client.Do(request); err != nil {
 		return r, err
 	}
+
 	// Defer close response body
 	defer response.Body.Close()
 	defer r.CleanQueryParams()
 
+	// backup response StatusCode into Requist.statuscode
 	r.statuscode = response.StatusCode
 	Logger.Debug("Response StatusCode %d", r.statuscode)
 
@@ -194,7 +212,7 @@ func (r *Requist) Request(success, failure interface{}) (*Requist, error) {
 
 //#$$=== Provider Body functions, used to set type of payload send on request
 
-// BodyProvider sets the Requests's body provider from original BodyProvider interface{}
+// BodyProvider sets the Request's body provider from original BodyProvider interface{}
 func (r *Requist) BodyProvider(body BodyProvider) *Requist {
 
 	Logger.Debug("Setting BodyProvider (%T)", body)
@@ -213,7 +231,7 @@ func (r *Requist) BodyProvider(body BodyProvider) *Requist {
 	return r
 }
 
-// BodyAsForm sets the Requests's body from a formProvider
+// BodyAsForm sets the Request's body from a formProvider
 func (r *Requist) BodyAsForm(body interface{}) *Requist {
 
 	if body == nil {
@@ -223,7 +241,7 @@ func (r *Requist) BodyAsForm(body interface{}) *Requist {
 	return r.BodyProvider(formProvider{payload: body})
 }
 
-// BodyAsJSON sets the Requests's body from a jsonProvider
+// BodyAsJSON sets the Request's body from a jsonProvider
 func (r *Requist) BodyAsJSON(body interface{}) *Requist {
 
 	if body == nil {
@@ -233,7 +251,7 @@ func (r *Requist) BodyAsJSON(body interface{}) *Requist {
 	return r.BodyProvider(jsonProvider{payload: body})
 }
 
-// BodyAsText sets the Requests's body from a textProvider
+// BodyAsText sets the Request's body from a textProvider
 func (r *Requist) BodyAsText(body interface{}) *Requist {
 
 	if body == nil {
