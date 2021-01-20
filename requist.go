@@ -15,12 +15,12 @@ import (
 	"time"
 )
 
-//=== Logger default
+// Logger is the default logs handler
 var Logger = logger.NewLogger(false)
 
 //=== Requests manipulations interface
 
-// Requist interface Define all Methods
+// Operations interface Define all Methods
 type Operations interface {
 	SetClientTransport(transport *http.Transport)
 	SetClientTimeout(timeout time.Duration)
@@ -48,6 +48,7 @@ type Operations interface {
 
 	Base(base string) *Requist
 	Path(path string) *Requist
+	URI(uri string) *Requist
 	Method(method string) *Requist
 
 	Get(path string, success, failure interface{}) (*Requist, error)
@@ -66,6 +67,7 @@ type Requist struct {
 	auth   string
 	method string
 	url    string
+	uri    string
 	path   string
 
 	// Holds last HTTP Response Code
@@ -126,7 +128,7 @@ func (r *Requist) SetClientTimeout(timeout time.Duration) {
 	r.client.Timeout = timeout
 }
 
-// SetClientTransport take transport param and set client HTTP Transport
+// SetClientContext take transport param and set client HTTP Transport
 func (r *Requist) SetClientContext(context context.Context) {
 
 	Logger.Debug("Setting Client Context %+v", context)
@@ -300,17 +302,23 @@ func (r *Requist) Accept(accept string) {
 
 //#$$=== QueryParams manipulation functions
 
-// PrepareRequestURI ...
-func (r *Requist) PrepareRequestURI() (string, error) {
+// PrepareRequestURI returns actual uri
+func (r *Requist) PrepareRequestURI() (uri string, err error) {
 
-	reqURL, err := url.Parse(ParseBaseURL(r.url))
-	if err != nil {
-		return "", err
+	if len(r.uri) > 0 {
+		uri = r.uri
+		r.uri = ""
+		err = nil
+	} else {
+		reqURL, err := url.Parse(ParseBaseURL(r.url))
+		if err != nil {
+			return "", err
+		}
+		reqURL.Path = r.path
+		reqURL.RawQuery = r.queries.Encode()
+		uri = reqURL.String()
 	}
-	reqURL.Path = r.path
-	reqURL.RawQuery = r.queries.Encode()
-
-	return reqURL.String(), err
+	return uri, err
 }
 
 //#$$=== Header manipulation functions
@@ -408,6 +416,14 @@ func (r *Requist) Path(path string) *Requist {
 	return r
 }
 
+// URI sets request uri to use in next request
+func (r *Requist) URI(uri string) *Requist {
+
+	r.uri = uri
+
+	return r
+}
+
 // Method set HTTP Method to execute
 func (r *Requist) Method(method string) *Requist {
 
@@ -440,7 +456,7 @@ func (r *Requist) Method(method string) *Requist {
 	return r
 }
 
-//#$$=== Requist functions executers, Correspond to HTTP Methods
+//#$$=== Requist functions executors, Correspond to HTTP Methods
 
 // Get implement GET HTTP Method
 func (r *Requist) Get(path string, success, failure interface{}) (*Requist, error) {
