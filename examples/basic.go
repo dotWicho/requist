@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-// UserInfo, fictional user information
+// UserInfo fictional user information
 type UserInfo struct {
 	Name    string   `json:"name"`
 	Age     int      `json:"age"`
@@ -35,8 +35,8 @@ type PostResponse struct {
 }
 
 func asJSON(body interface{}) string {
-	strJson, _ := json.MarshalIndent(body, "", "  ")
-	return string(strJson)
+	strJSON, _ := json.MarshalIndent(body, "", "  ")
+	return string(strJSON)
 }
 
 func main() {
